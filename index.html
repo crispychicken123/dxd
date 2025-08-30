@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #06ffa5;
+            --warning-color: #ffb700;
+            --danger-color: #ff006e;
+            --info-color: #00b4d8;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --sidebar-width: 280px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            color: white;
+            transition: all 0.3s ease;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar.collapsed .sidebar-title {
+            opacity: 0;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .toggle-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: var(--success-color);
+        }
+
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: var(--success-color);
+        }
+
+        .menu-item i {
+            font-size: 1.2rem;
+            margin-left: 1rem;
+            min-width: 24px;
+        }
+
+        .menu-text {
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar.collapsed .menu-text {
+            opacity: 0;
+        }
+
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .submenu.open {
+            max-height: 300px;
+        }
+
+        .submenu-item {
+            padding: 0.75rem 3rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .submenu-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-right: var(--sidebar-width);
+            transition: margin-right 0.3s ease;
+            padding: 2rem;
+        }
+
+        .main-content.expanded {
+            margin-right: 70px;
+        }
+
+        .dashboard-header {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+        }
+
+        .stat-card.primary::before { background: var(--primary-color); }
+        .stat-card.success::before { background: var(--success-color); }
+        .stat-card.warning::before { background: var(--warning-color); }
+        .stat-card.danger::before { background: var(--danger-color); }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card.primary .stat-icon { background: rgba(67, 97, 238, 0.1); color: var(--primary-color); }
+        .stat-card.success .stat-icon { background: rgba(6, 255, 165, 0.1); color: var(--success-color); }
+        .stat-card.warning .stat-icon { background: rgba(255, 183, 0, 0.1); color: var(--warning-color); }
+        .stat-card.danger .stat-icon { background: rgba(255, 0, 110, 0.1); color: var(--danger-color); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            margin-bottom: 1rem;
+        }
+
+        /* Data Table */
+        .table-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .table-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+
+        .search-box {
+            position: relative;
+            width: 250px;
+        }
+
+        .search-box input {
+            padding-left: 2.5rem;
+            border-radius: 50px;
+            border: 1px solid #ddd;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        /* Modals */
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            border: none;
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            color: var(--dark-color);
+            transition: all 0.3s ease;
+        }
+
+        .btn-success:hover {
+            background: #05d091;
+            transform: translateY(-2px);
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--primary-color);
+            border-radius: 10px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: rgba(67, 97, 238, 0.02);
+        }
+
+        .upload-area:hover {
+            background: rgba(67, 97, 238, 0.05);
+            border-color: var(--secondary-color);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        /* Management Tables */
+        .management-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .management-table th {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem;
+        }
+
+        .management-table td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            transform: scale(1.2);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .custom-toast {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .toast-success .toast-icon {
+            color: var(--success-color);
+        }
+
+        .toast-error .toast-icon {
+            color: var(--danger-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Analytics</div>
+                <button class="toggle-btn" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-menu">
+                <div class="menu-item active">
+                    <i class="bi bi-speedometer2"></i>
+                    <span class="menu-text">Dashboard</span>
+                </div>
+                
+                <div class="menu-item" onclick="toggleSubmenu('dataSubmenu')">
+                    <i class="bi bi-database"></i>
+                    <span class="menu-text">Data Management</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </div>
+                <div class="submenu" id="dataSubmenu">
+                    <div class="submenu-item" onclick="showUploadModal()">
+                        <i class="bi bi-cloud-upload me-2"></i> Upload Excel
+                    </div>
+                    <div class="submenu-item" onclick="showDataEntryModal()">
+                        <i class="bi bi-pencil-square me-2"></i> Manual Entry
+                    </div>
+                </div>
+                
+                <div class="menu-item" onclick="toggleSubmenu('agentSubmenu')">
+                    <i class="bi bi-person"></i>
+                    <span class="menu-text">Agents</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </div>
+                <div class="submenu" id="agentSubmenu">
+                    <div class="submenu-item" onclick="showAddAgentModal()">
+                        <i class="bi bi-person-plus me-2"></i> Add Agent
+                    </div>
+                    <div class="submenu-item" onclick="showAgentsModal()">
+                        <i class="bi bi-people me-2"></i> View Agents
+                    </div>
+                </div>
+                
+                <div class="menu-item" onclick="toggleSubmenu('branchSubmenu')">
+                    <i class="bi bi-building"></i>
+                    <span class="menu-text">Branches</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </div>
+                <div class="submenu" id="branchSubmenu">
+                    <div class="submenu-item" onclick="showAddBranchModal()">
+                        <i class="bi bi-plus-square me-2"></i> Add Branch
+                    </div>
+                    <div class="submenu-item" onclick="showBranchesModal()">
+                        <i class="bi bi-buildings me-2"></i> View Branches
+                    </div>
+                </div>
+                
+                <div class="menu-item" onclick="exportData()">
+                    <i class="bi bi-download"></i>
+                    <span class="menu-text">Export Data</span>
+                </div>
+                
+                <div class="menu-item" onclick="refreshData()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    <span class="menu-text">Refresh</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <h1 class="header-title">Analytics Dashboard</h1>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" class="form-control" placeholder="Search..." id="globalSearch">
+                    </div>
+                    <button class="btn btn-primary" onclick="showUploadModal()">
+                        <i class="bi bi-cloud-upload me-1"></i> Upload Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card primary">
+                    <div class="stat-icon">
+                        <i class="bi bi-cart-check"></i>
+                    </div>
+                    <div class="stat-value" id="totalOrders">0</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                
+                <div class="stat-card success">
+                    <div class="stat-icon">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                    <div class="stat-value" id="deliveryOrders">0</div>
+                    <div class="stat-label">Delivery Orders</div>
+                </div>
+                
+                <div class="stat-card warning">
+                    <div class="stat-icon">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <div class="stat-value" id="pickupOrders">0</div>
+                    <div class="stat-label">Pickup Orders</div>
+                </div>
+                
+                <div class="stat-card danger">
+                    <div class="stat-icon">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+                    <div class="stat-value" id="voidOrders">0</div>
+                    <div class="stat-label">Void Orders</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h5 class="chart-title">Orders by Status</h5>
+                    <canvas id="statusChart"></canvas>
+                </div>
+                
+                <div class="chart-card">
+                    <h5 class="chart-title">Revenue by Branch</h5>
+                    <canvas id="branchChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-card">
+                <div class="table-header">
+                    <h5 class="table-title">Order Details</h5>
+                    <select class="form-select" id="statusFilter" style="width: 200px;">
+                        <option value="">All Status</option>
+                        <option value="DELIVERY">Delivery</option>
+                        <option value="Pickup">Pickup</option>
+                        <option value="void">Void</option>
+                    </select>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Type</th>
+                                <th>Agent Name</th>
+                                <th>Total Orders</th>
+                                <th>Amount</th>
+                                <th>Branch</th>
+                                <th>Branch Orders</th>
+                                <th>Branch Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Excel File</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="upload-area" onclick="document.getElementById('excelFile').click()">
+                        <div class="upload-icon">
+                            <i class="bi bi-cloud-upload"></i>
+                        </div>
+                        <h5>Click to upload or drag and drop</h5>
+                        <p class="text-muted">Supports .xlsx and .xls files</p>
+                    </div>
+                    <input type="file" id="excelFile" class="d-none" accept=".xlsx,.xls" onchange="handleFileUpload(event)">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Agent Modal -->
+    <div class="modal fade" id="addAgentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Agent</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="addAgent(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Agent Name</label>
+                            <input type="text" class="form-control" id="agentName" placeholder="Enter agent name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="agentEmail" placeholder="Enter email address">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="agentPhone" placeholder="Enter phone number">
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Add Agent</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Branch Modal -->
+    <div class="modal fade" id="addBranchModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Branch</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="addBranch(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Branch Name</label>
+                            <input type="text" class="form-control" id="branchName" placeholder="Enter branch name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            <input type="text" class="form-control" id="branchLocation" placeholder="Enter branch location">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Manager</label>
+                            <input type="text" class="form-control" id="branchManager" placeholder="Enter manager name">
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Add Branch</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Agents Modal -->
+    <div class="modal fade" id="viewAgentsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Manage Agents</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table management-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="agentsTableBody">
+                                <!-- Agents will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Branches Modal -->
+    <div class="modal fade" id="viewBranchesModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Manage Branches</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table management-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Location</th>
+                                    <th>Manager</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="branchesTableBody">
+                                <!-- Branches will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Sample data
+        let ordersData = [
+            { status: "DELIVERY", type: "Order Subtotal", agentName: "42", totalOrder: 3245.5, branches: "Hamdan", order: 11, amount: 1512 },
+            { status: "Pickup", type: "Ann Arielle David", agentName: "15", totalOrder: 1061.5, branches: "Khalidiyah", order: 12, amount: 856.5 },
+            { status: "void by rest", type: "BHAWNA SHARMA", agentName: "0", totalOrder: 0, branches: "Muroor", order: 5, amount: 161 },
+            { status: "void by agent", type: "manju ranabhat", agentName: "0", totalOrder: 0, branches: "Shabiya", order: 5, amount: 307 },
+            { status: "void by customer", type: "Nons Rose", agentName: "0", totalOrder: 0, branches: "Barsha", order: 6, amount: 317 },
+            { status: "8/30/2025", type: "Melvin compendio", agentName: "0", totalOrder: 0, branches: "Satwa", order: 3, amount: 92 },
+            { status: "", type: "SALEH EMAD", agentName: "21", totalOrder: 1732, branches: "", order: 0, amount: 0 },
+            { status: "", type: "Asmita Sapkota", agentName: "6", totalOrder: 452, branches: "", order: 0, amount: 0 }
+        ];
+
+        let agents = JSON.parse(localStorage.getItem('agents')) || [
+            { id: 1, name: "John Smith", email: "john@example.com", phone: "+1234567890", status: "Active" },
+            { id: 2, name: "Sarah Johnson", email: "sarah@example.com", phone: "+0987654321", status: "Active" }
+        ];
+
+        let branches = JSON.parse(localStorage.getItem('branches')) || [
+            { id: 1, name: "Main Branch", location: "Downtown", manager: "John Smith", status: "Active" },
+            { id: 2, name: "West Branch", location: "West District", manager: "Sarah Johnson", status: "Active" }
+        ];
+
+        let filteredData = [...ordersData];
+        let statusChart, branchChart;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatistics();
+            renderTable();
+            initCharts();
+            
+            // Event listeners
+            document.getElementById('globalSearch').addEventListener('input', filterData);
+            document.getElementById('statusFilter').addEventListener('change', filterData);
+        });
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        }
+
+        // Toggle submenu
+        function toggleSubmenu(submenuId) {
+            const submenu = document.getElementById(submenuId);
+            submenu.classList.toggle('open');
+            
+            // Update chevron icon
+            const chevron = event.currentTarget.querySelector('.bi-chevron-down');
+            chevron.classList.toggle('bi-chevron-down');
+            chevron.classList.toggle('bi-chevron-up');
+        }
+
+        // Show modals
+        function showUploadModal() {
+            new bootstrap.Modal(document.getElementById('uploadModal')).show();
+        }
+
+        function showAddAgentModal() {
+            new bootstrap.Modal(document.getElementById('addAgentModal')).show();
+        }
+
+        function showAgentsModal() {
+            renderAgentsTable();
+            new bootstrap.Modal(document.getElementById('viewAgentsModal')).show();
+        }
+
+        function showAddBranchModal() {
+            new bootstrap.Modal(document.getElementById('addBranchModal')).show();
+        }
+
+        function showBranchesModal() {
+            renderBranchesTable();
+            new bootstrap.Modal(document.getElementById('viewBranchesModal')).show();
+        }
+
+        // Handle file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                    processExcelData(jsonData);
+                    showToast('File uploaded successfully', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+                } catch (error) {
+                    showToast('Error processing file', 'error');
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Process Excel data
+        function processExcelData(jsonData) {
+            ordersData = [];
+            
+            for (let i = 1; i < jsonData.length; i++) {
+                const row = jsonData[i];
+                if (row[0] || row[1] || row[2]) {
+                    ordersData.push({
+                        status: row[0] || "",
+                        type: row[1] || "",
+                        agentName: row[2] || "",
+                        totalOrder: parseFloat(row[3]) || 0,
+                        amount: parseFloat(row[4]) || 0,
+                        branches: row[5] || "",
+                        order: parseInt(row[6]) || 0,
+                        branchAmount: parseFloat(row[7]) || 0
+                    });
+                }
+            }
+            
+            filteredData = [...ordersData];
+            updateStatistics();
+            renderTable();
+            updateCharts();
+        }
+
+        // Add agent
+        function addAgent(event) {
+            event.preventDefault();
+            
+            const agent = {
+                id: Date.now(),
+                name: document.getElementById('agentName').value,
+                email: document.getElementById('agentEmail').value,
+                phone: document.getElementById('agentPhone').value,
+                status: "Active"
+            };
+            
+            agents.push(agent);
+            localStorage.setItem('agents', JSON.stringify(agents));
+            
+            showToast('Agent added successfully', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('addAgentModal')).hide();
+            document.getElementById('agentName').value = '';
+            document.getElementById('agentEmail').value = '';
+            document.getElementById('agentPhone').value = '';
+        }
+
+        // Add branch
+        function addBranch(event) {
+            event.preventDefault();
+            
+            const branch = {
+                id: Date.now(),
+                name: document.getElementById('branchName').value,
+                location: document.getElementById('branchLocation').value,
+                manager: document.getElementById('branchManager').value,
+                status: "Active"
+            };
+            
+            branches.push(branch);
+            localStorage.setItem('branches', JSON.stringify(branches));
+            
+            showToast('Branch added successfully', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('addBranchModal')).hide();
+            document.getElementById('branchName').value = '';
+            document.getElementById('branchLocation').value = '';
+            document.getElementById('branchManager').value = '';
+        }
+
+        // Render agents table
+        function renderAgentsTable() {
+            const tbody = document.getElementById('agentsTableBody');
+            tbody.innerHTML = '';
+            
+            agents.forEach(agent => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${agent.id}</td>
+                    <td>${agent.name}</td>
+                    <td>${agent.email}</td>
+                    <td>${agent.phone}</td>
+                    <td><span class="badge bg-success">${agent.status}</span></td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteAgent(${agent.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Render branches table
+        function renderBranchesTable() {
+            const tbody = document.getElementById('branchesTableBody');
+            tbody.innerHTML = '';
+            
+            branches.forEach(branch => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${branch.id}</td>
+                    <td>${branch.name}</td>
+                    <td>${branch.location}</td>
+                    <td>${branch.manager}</td>
+                    <td><span class="badge bg-success">${branch.status}</span></td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteBranch(${branch.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Delete agent
+        function deleteAgent(id) {
+            if (!confirm('Are you sure you want to delete this agent?')) return;
+            
+            agents = agents.filter(agent => agent.id !== id);
+            localStorage.setItem('agents', JSON.stringify(agents));
+            renderAgentsTable();
+            showToast('Agent deleted successfully', 'success');
+        }
+
+        // Delete branch
+        function deleteBranch(id) {
+            if (!confirm('Are you sure you want to delete this branch?')) return;
+            
+            branches = branches.filter(branch => branch.id !== id);
+            localStorage.setItem('branches', JSON.stringify(branches));
+            renderBranchesTable();
+            showToast('Branch deleted successfully', 'success');
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const totalOrders = ordersData.length;
+            const deliveryOrders = ordersData.filter(o => o.status === 'DELIVERY').length;
+            const pickupOrders = ordersData.filter(o => o.status === 'Pickup').length;
+            const voidOrders = ordersData.filter(o => o.status && o.status.includes('void')).length;
+
+            document.getElementById('totalOrders').textContent = totalOrders;
+            document.getElementById('deliveryOrders').textContent = deliveryOrders;
+            document.getElementById('pickupOrders').textContent = pickupOrders;
+            document.getElementById('voidOrders').textContent = voidOrders;
+        }
+
+        // Render table
+        function renderTable() {
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+
+            filteredData.forEach(order => {
+                const row = document.createElement('tr');
+                
+                let statusBadge = '';
+                if (order.status === 'DELIVERY') {
+                    statusBadge = '<span class="badge bg-primary">Delivery</span>';
+                } else if (order.status === 'Pickup') {
+                    statusBadge = '<span class="badge bg-success">Pickup</span>';
+                } else if (order.status && order.status.includes('void')) {
+                    statusBadge = '<span class="badge bg-danger">Void</span>';
+                }
+
+                row.innerHTML = `
+                    <td>${statusBadge || '-'}</td>
+                    <td>${order.type || '-'}</td>
+                    <td>${order.agentName || '-'}</td>
+                    <td>${order.totalOrder || 0}</td>
+                    <td><strong>$${order.amount.toFixed(2)}</strong></td>
+                    <td>${order.branches || '-'}</td>
+                    <td>${order.order || 0}</td>
+                    <td><strong>$${order.branchAmount.toFixed(2)}</strong></td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Filter data
+        function filterData() {
+            const searchTerm = document.getElementById('globalSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            filteredData = ordersData.filter(order => {
+                const matchesSearch = searchTerm === '' || 
+                    order.type.toLowerCase().includes(searchTerm) ||
+                    order.branches.toLowerCase().includes(searchTerm) ||
+                    order.agentName.toLowerCase().includes(searchTerm);
+                
+                const matchesStatus = statusFilter === '' || order.status === statusFilter;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            renderTable();
+        }
+
+        // Initialize charts
+        function initCharts() {
+            // Status chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            const statusCounts = {
+                'Delivery': ordersData.filter(o => o.status === 'DELIVERY').length,
+                'Pickup': ordersData.filter(o => o.status === 'Pickup').length,
+                'Void': ordersData.filter(o => o.status && o.status.includes('void')).length
+            };
+
+            statusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#4361ee', '#06ffa5', '#ff006e'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Branch chart
+            const branchCtx = document.getElementById('branchChart').getContext('2d');
+            const branchAmounts = {};
+            
+            ordersData.forEach(order => {
+                if (order.branches && order.branchAmount > 0) {
+                    branchAmounts[order.branches] = (branchAmounts[order.branches] || 0) + order.branchAmount;
+                }
+            });
+
+            branchChart = new Chart(branchCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(branchAmounts),
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: Object.values(branchAmounts),
+                        backgroundColor: '#4361ee',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update charts
+        function updateCharts() {
+            // Update status chart
+            const statusCounts = {
+                'Delivery': filteredData.filter(o => o.status === 'DELIVERY').length,
+                'Pickup': filteredData.filter(o => o.status === 'Pickup').length,
+                'Void': filteredData.filter(o => o.status && o.status.includes('void')).length
+            };
+
+            statusChart.data.labels = Object.keys(statusCounts);
+            statusChart.data.datasets[0].data = Object.values(statusCounts);
+            statusChart.update();
+
+            // Update branch chart
+            const branchAmounts = {};
+            
+            filteredData.forEach(order => {
+                if (order.branches && order.branchAmount > 0) {
+                    branchAmounts[order.branches] = (branchAmounts[order.branches] || 0) + order.branchAmount;
+                }
+            });
+
+            branchChart.data.labels = Object.keys(branchAmounts);
+            branchChart.data.datasets[0].data = Object.values(branchAmounts);
+            branchChart.update();
+        }
+
+        // Export data
+        function exportData() {
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(filteredData);
+            XLSX.utils.book_append_sheet(wb, ws, "Orders");
+            
+            const filename = `orders_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            
+            showToast('Data exported successfully', 'success');
+        }
+
+        // Refresh data
+        function refreshData() {
+            updateStatistics();
+            renderTable();
+            updateCharts();
+            showToast('Data refreshed', 'success');
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `custom-toast toast-${type}`;
+            
+            const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
+            
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="bi ${icon}"></i>
+                </div>
+                <div>${message}</div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toastContainer.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
