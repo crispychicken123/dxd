@@ -294,7 +294,7 @@
            PRINT STYLES (REPORT SUMMARY)
            ========================================= */
         @media print {
-            /* FIX: Allow full height for printer */
+            /* 1. FIX: Allow full height for printer */
             body {
                 height: auto !important;
                 overflow: visible !important;
@@ -361,6 +361,7 @@
                 border: 1px solid #ccc;
                 margin-bottom: 15px;
                 padding: 10px;
+                min-height: 300px; /* Ensure space */
             }
             .chart-card h3 { font-size: 14pt; margin-top: 0; }
             
@@ -392,6 +393,13 @@
                 color: black !important;
             }
             tr { page-break-inside: avoid; }
+
+            /* SVG Chart Fixes for Print */
+            svg {
+                width: 100% !important;
+                height: auto !important;
+                display: block;
+            }
 
             /* Header & Footer */
             .report-header {
@@ -437,7 +445,7 @@
             </div>
             <div class="header-controls no-print">
                 
-                <!-- Branch Selector -->
+                <!-- Branch Selector (NEW) -->
                 <div class="control-group">
                     <span style="font-size:0.75rem; color:#999; font-weight:600;">BRANCH:</span>
                     <select id="branchSelector" onchange="app.filterBranch(this.value)">
@@ -872,27 +880,75 @@
             },
 
             renderCharts: (data) => {
-                const svg = document.getElementById('branchChart'); svg.innerHTML = '';
-                const max = Math.max(...data.map(d=>d.sales), 100);
-                const h = 250, w = 600, pad = 40;
-                const barH = (h-2*pad) / data.length;
+                const svg = document.getElementById('branchChart'); 
+                if(!svg) return; // Safety check
+                svg.innerHTML = '';
                 
+                // 1. Setup Dimensions (Fixed Canvas)
+                const h = 250, w = 600;
+                const padTop = 40, padBot = 20, padLeft = 80, padRight = 40;
+                
+                // 2. Calculate Max Value (Handle Zeros)
+                const allSales = data.map(d=>d.sales);
+                const maxVal = allSales.length > 0 ? Math.max(...allSales) : 0;
+                
+                // 3. Handle "No Data" State
+                if(maxVal === 0) {
+                    svg.innerHTML = `<text x="${w/2}" y="${h/2}" text-anchor="middle" fill="#999" font-size="14">No Data Available</text>`;
+                    return;
+                }
+
+                // 4. Calculate Bar Dimensions
+                const availH = h - padTop - padBot;
+                const availW = w - padLeft - padRight;
+                
+                const barCount = data.length;
+                const gap = 15; // Space between bars
+                const barW = (availW - (gap * (barCount - 1))) / barCount;
+
+                // 5. Draw Grid Lines (Background)
+                for(let i=0; i<=4; i++) {
+                    const y = padTop + (availH * (i/4));
+                    const valLabel = (maxVal * (i/4)).toFixed(0);
+                    svg.innerHTML += `<line x1="${padLeft}" y1="${y}" x2="${w-padRight}" y2="${y}" class="grid-line" />`;
+                    svg.innerHTML += `<text x="${padLeft - 5}" y="${y+4}" text-anchor="end" class="axis-text">${valLabel}</text>`;
+                }
+
+                // 6. Draw Bars
                 data.forEach((d, i) => {
-                    const valH = (d.sales / max) * (h-2*pad);
-                    const x = pad, y = pad + i * (barH + 10);
-                    svg.innerHTML += `<text x="0" y="${y+20}" font-size="10" fill="#666">${d.name}</text>`;
-                    svg.innerHTML += `<rect x="${x+80}" y="${y+(barH-valH)}" width="${w-x-80}" height="${valH}" fill="var(--primary)" rx="4">
+                    const valH = (d.sales / maxVal) * availH;
+                    const x = padLeft + i * (barW + gap);
+                    const y = padTop + availH - valH; // Align to bottom axis
+                        
+                    // The Bar
+                    svg.innerHTML += `<rect x="${x}" y="${y}" width="${barW}" height="${valH}" fill="var(--primary)" rx="4" class="bar">
                         <title>${d.name}: ${d.sales.toFixed(2)}</title>
                     </rect>`;
-                    svg.innerHTML += `<text x="${w-10}" y="${y+20}" font-size="10" text-anchor="end">${d.sales.toFixed(0)}</text>`;
+                    
+                    // Branch Label (Bottom) - Shortened to fit
+                    svg.innerHTML += `<text x="${x + barW/2}" y="${h - 8}" text-anchor="middle" class="axis-text" font-weight="bold">${d.name.split(' ')[0]}</text>`;
+                    
+                    // Value Label (Top of Bar)
+                    svg.innerHTML += `<text x="${x + barW/2}" y="${y - 5}" text-anchor="middle" fill="#666" font-size="10">${d.sales.toFixed(0)}</text>`;
                 });
+            },
 
-                const pSvg = document.getElementById('channelChart'); pSvg.innerHTML = '';
+            renderChannelChart: (data) => {
+                const pSvg = document.getElementById('channelChart'); 
+                if(!pSvg) return;
+                pSvg.innerHTML = '';
+
                 let channelTotal = {};
                 CONFIG.channels.forEach(c => channelTotal[c.id] = 0);
                 data.forEach(b => { CONFIG.channels.forEach(c => { channelTotal[c.id] += b.channels[c.id].sales; }); });
                 
                 const total = Object.values(channelTotal).reduce((a,b)=>a+b, 0);
+                
+                if(total === 0) {
+                     pSvg.innerHTML = `<text x="150" y="150" text-anchor="middle" fill="#999">No Data</text>`;
+                     return;
+                }
+
                 const r = 100, cx = 150, cy = 150;
                 let start = 0;
                 const colors = ['#e65100', '#ff9800', '#2ecc71', '#3498db', '#9b59b6', '#e74c3c', '#f1c40f', '#34495e'];
@@ -904,13 +960,18 @@
                     const end = start + slice;
                     const x1 = cx + r*Math.cos(start), y1 = cy + r*Math.sin(start);
                     const x2 = cx + r*Math.cos(end), y2 = cy + r*Math.sin(end);
-                    const large = slice > Math.PI ?1 : 0;
+                    const large = slice > Math.PI ? 1 : 0;
                     const pathData = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
                     pSvg.innerHTML += `<path d="${pathData}" fill="${colors[i]}" stroke="white" stroke-width="2">
                         <title>${ch.label}: ${val.toFixed(2)}</title>
                     </path>`;
                     start = end;
                 });
+            },
+            
+            renderChartsWrapper: (data) => {
+                this.renderCharts(data);
+                this.renderChannelChart(data);
             },
 
             renderHeatmap: (data) => {
@@ -1069,6 +1130,15 @@
                 a.download = `Crispy_Report_${state.currentMonth}.csv`;
                 a.click();
             }
+        };
+
+        // --- Main Update Router Override ---
+        const originalUpdatePeriod = app.updatePeriod;
+        app.updatePeriod = function() {
+            originalUpdatePeriod.apply(app);
+            // Robust Chart Render Wrapper
+            const { branchStats } = app.processData();
+            app.renderChartsWrapper(branchStats);
         };
 
         window.onload = app.init;
