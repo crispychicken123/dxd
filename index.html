@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crispy Chicken | Enterprise BI Ultimate</title>
+    <title>Crispy Chicken | Enterprise BI Ultimate (Smart Entry)</title>
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -102,7 +102,7 @@
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
-            flex-wrap: wrap; /* Allow wrapping on small screens */
+            flex-wrap: wrap;
         }
         .header-left h1 { margin: 0; font-size: 1.4rem; color: var(--secondary); font-weight: 300; }
         .header-left strong { font-weight: 700; }
@@ -188,7 +188,6 @@
             border-radius: var(--radius); box-shadow: var(--shadow);
             border-top: 4px solid transparent;
         }
-        .kpi-card:hover { transform: translateY(-2px); transition: 0.2s; box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
         .kpi-card.blue { border-color: var(--primary); }
         .kpi-card.orange { border-color: var(--warning); }
         .kpi-card.green { border-color: var(--success); }
@@ -225,22 +224,34 @@
         td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-main); }
         tr:hover td { background-color: #fafbfc; }
         .num { font-family: 'Consolas', 'Monaco', monospace; text-align: right; }
-        .text-left { text-align: left; }
 
-        /* --- Input Table Styling --- */
+        /* --- Input Table Styling (Improved) --- */
         .input-table-wrapper {
             background: var(--bg-card); border-radius: var(--radius);
             box-shadow: var(--shadow); overflow: auto; border: 1px solid var(--border);
         }
         .entry-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        .entry-table th { background: var(--secondary); color: white; padding: 12px; font-size: 0.85rem; }
-        .entry-table td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+        .entry-table th { background: var(--secondary); color: white; padding: 12px; font-size: 0.85rem; position: sticky; top: 0; z-index: 10; }
+        .entry-table td { padding: 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+        
+        /* Row Hover Effect to prevent Day confusion */
+        tr.entry-row:hover td {
+            background-color: #fff8e1; /* Light orange tint on hover */
+        }
+        tr.entry-row:hover .day-cell {
+            background-color: #ffecb3;
+            color: var(--primary-dark);
+            font-weight: 900;
+        }
+
         .day-cell {
             background: #f8f9fa; color: var(--secondary); font-weight: bold;
             text-align: center; width: 50px; vertical-align: middle !important;
             writing-mode: vertical-rl; text-orientation: mixed;
             border-right: 2px solid var(--primary);
+            position: sticky; left: 0; z-index: 5;
         }
+
         .channel-group { border-right: 1px solid var(--border); min-width: 140px; }
         .channel-group-header {
             background: #fff3e0; color: var(--primary-dark);
@@ -250,9 +261,18 @@
         .form-input {
             width: 95%; padding: 6px; border: 1px solid #ddd;
             border-radius: 4px; font-size: 0.85rem; text-align: right;
-            transition: 0.2s; margin-bottom: 4px;
+            transition: 0.2s; margin-bottom: 2px;
         }
         .form-input:focus { border-color: var(--primary); background: #fff8e1; outline: none; box-shadow: 0 0 0 2px rgba(230, 81, 0, 0.1); }
+        .input-trn { font-size: 0.8rem; color: var(--text-muted); border-color: #eee; }
+
+        /* Flash Animation for Save Confirmation */
+        @keyframes flashGreen {
+            0% { background-color: white; }
+            50% { background-color: #d1fae5; border-color: var(--success); }
+            100% { background-color: white; }
+        }
+        .saved-anim { animation: flashGreen 0.8s ease-out; }
 
         /* --- Heatmap & Insights --- */
         .heatmap-grid { display: grid; grid-template-columns: 120px repeat(8, 1fr); gap: 4px; margin-top: 15px; }
@@ -289,143 +309,45 @@
         .bar:hover { fill: var(--primary-dark); opacity: 0.9; }
         .grid-line { stroke: #f1f2f6; stroke-width: 1; }
         .axis-text { font-size: 10px; fill: #95a5a6; }
+        
+        /* Trend Chart Styles */
+        .trend-line { fill: none; stroke: var(--secondary); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+        .trend-dot { fill: var(--bg-card); stroke: var(--primary); stroke-width: 2; cursor: pointer; transition: r 0.2s; }
+        .trend-dot:hover { r: 6; fill: var(--primary-dark); }
 
         /* =========================================
-           PRINT STYLES (REPORT SUMMARY)
+           PRINT STYLES
            ========================================= */
         @media print {
-            /* 1. FIX: Allow full height for printer */
-            body {
-                height: auto !important;
-                overflow: visible !important;
-                background: white !important;
-                color: black !important;
-                font-size: 12pt;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            /* 1. HIDE: Sidebar, Header, Inputs, Heatmap */
-            aside, header, .tabs, .context-bar, .toast, .no-print, .chart-row:nth-child(2) .chart-card:last-child {
-                display: none !important;
-            }
-
-            /* 2. FIX: Reset Layout Containers */
-            main {
-                display: block !important;
-                height: auto !important;
-                overflow: visible !important;
-            }
-
-            .view-container {
-                overflow: visible !important;
-                position: static !important;
-                background: white !important;
-            }
+            body { height: auto; overflow: visible; background: white; color: black; }
+            aside, header, .tabs, .context-bar, .toast, .no-print, .chart-row:nth-child(2) .chart-card:last-child { display: none !important; }
+            main { display: block; height: auto; overflow: visible; }
+            .view-container { overflow: visible; position: static; background: white; }
+            .view { display: none; height: auto; overflow: visible; padding: 0; animation: none; }
+            #view-dashboard { display: block; }
             
-            .view {
-                display: none !important; /* Hide all tabs */
-                height: auto !important;
-                overflow: visible !important;
-                padding: 0 !important;
-                animation: none !important;
-            }
-
-            /* 3. SHOW ONLY DASHBOARD */
-            #view-dashboard {
-                display: block !important;
-            }
-
-            /* 4. ARRANGE SIZE SYSTEM */
-            .kpi-grid {
-                display: grid !important;
-                grid-template-columns: repeat(4, 1fr) !important; /* 4 Fixed Columns */
-                gap: 10px !important;
-                margin-bottom: 20px !important;
-            }
-            .kpi-card {
-                box-shadow: none;
-                border: 1px solid #ccc;
-                break-inside: avoid;
-            }
-
-            /* Charts Stack vertically */
-            .chart-row {
-                display: block !important;
-                margin-bottom: 20px;
-            }
-            .chart-card {
-                break-inside: avoid;
-                page-break-inside: avoid;
-                box-shadow: none;
-                border: 1px solid #ccc;
-                margin-bottom: 15px;
-                padding: 10px;
-                min-height: 300px; /* Ensure space */
-            }
+            .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+            .kpi-card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+            
+            .chart-row { display: block; margin-bottom: 20px; }
+            .chart-card { break-inside: avoid; page-break-inside: avoid; box-shadow: none; border: 1px solid #ccc; margin-bottom: 15px; padding: 10px; min-height: 300px; }
             .chart-card h3 { font-size: 14pt; margin-top: 0; }
-            
-            /* Hide Heatmap to save space */
             #heatmapContainer { display: none !important; }
-
-            /* Table Fixes */
-            .table-container {
-                height: auto !important;
-                border: 1px solid #ccc;
-                box-shadow: none;
-                break-inside: avoid;
-                page-break-inside: avoid;
-                margin-top: 20px;
-            }
-            .data-table-wrapper {
-                overflow: visible !important;
-            }
-
-            /* FIX: Disable Sticky Positioning (Breaks print) */
-            th {
-                position: static !important;
-                background: #eee !important;
-                border-bottom: 1px solid black !important;
-                -webkit-print-color-adjust: exact;
-            }
-            td {
-                border-bottom: 1px solid #ccc !important;
-                color: black !important;
-            }
+            
+            .table-container { height: auto; border: 1px solid #ccc; box-shadow: none; break-inside: avoid; page-break-inside: avoid; margin-top: 20px; }
+            .data-table-wrapper { overflow: visible; }
+            th { position: static; background: #eee !important; border-bottom: 1px solid black !important; }
+            td { border-bottom: 1px solid #ccc !important; color: black !important; }
             tr { page-break-inside: avoid; }
-
-            /* SVG Chart Fixes for Print */
-            svg {
-                width: 100% !important;
-                height: auto !important;
-                display: block;
-            }
-
-            /* Header & Footer */
-            .report-header {
-                text-align: center;
-                margin-bottom: 20px;
-                border-bottom: 2px solid var(--primary);
-                padding-bottom: 10px;
-                display: block !important;
-            }
+            svg { width: 100%; height: auto; display: block; }
+            
+            .report-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; display: block !important; }
             .report-header h1 { color: var(--primary); margin: 0; font-size: 24pt; }
             .report-header h2 { margin: 5px 0; font-size: 16pt; color: #333; }
             .report-header p { color: #666; font-size: 12pt; margin-top: 10px; }
-
-            .print-footer {
-                margin-top: 30px;
-                text-align: center;
-                font-size: 9pt;
-                color: #666;
-                border-top: 1px solid #eee;
-                padding-top: 10px;
-            }
-
-            @page {
-                size: A4 landscape;
-                margin: 1.5cm;
-            }
+            
+            .print-footer { margin-top: 30px; text-align: center; font-size: 9pt; color: #666; border-top: 1px solid #eee; padding-top: 10px; }
+            @page { size: A4 landscape; margin: 1.5cm; }
         }
     </style>
 </head>
@@ -445,7 +367,7 @@
             </div>
             <div class="header-controls no-print">
                 
-                <!-- Branch Selector (NEW) -->
+                <!-- Branch Selector -->
                 <div class="control-group">
                     <span style="font-size:0.75rem; color:#999; font-weight:600;">BRANCH:</span>
                     <select id="branchSelector" onchange="app.filterBranch(this.value)">
@@ -543,6 +465,15 @@
                     </div>
                 </div>
 
+                <!-- Daily Delivery Trend -->
+                <div class="chart-card" style="margin-bottom:30px; border-left: 5px solid var(--secondary);">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Daily Delivery Trend (All Branches)</h3>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Includes Delivery, Keeta, Careem, Noon, Deliveroo, Smiles</span>
+                    </div>
+                    <svg id="trendChart" viewBox="0 0 800 200" style="height: 250px;"></svg>
+                </div>
+
                 <!-- Heatmap -->
                 <div class="chart-card no-print">
                     <div class="chart-header"><h3 class="chart-title">TRN Heatmap (Branch x Channel)</h3></div>
@@ -567,16 +498,22 @@
                 </div>
             </div>
 
-            <!-- VIEW 2: Data Entry -->
+            <!-- VIEW 2: Data Entry (SMART ENTRY) -->
             <div id="view-entry" class="view">
                 <div class="context-bar">
                     <div class="context-info">
                         <h3><i class="fas fa-pen"></i> Editing Data</h3>
                         <p>Target: <strong id="ctxBranchName" class="context-highlight">Loading...</strong> | Period: <strong id="ctxMonthName" class="context-highlight">Loading...</strong></p>
                     </div>
-                    <button class="btn" onclick="app.resetMonth()" style="color:var(--danger); border-color:var(--danger);">
-                        <i class="fas fa-trash"></i> Clear Month
-                    </button>
+                    <div style="display:flex; gap:10px;">
+                        <!-- SMART TOOL: Copy Previous Day -->
+                        <button class="btn" style="background:var(--primary); color:white; border:none;" onclick="app.copyPreviousDay()">
+                            <i class="fas fa-copy"></i> Copy Prev Day
+                        </button>
+                        <button class="btn" onclick="app.resetMonth()" style="color:var(--danger); border-color:var(--danger);">
+                            <i class="fas fa-trash"></i> Clear Month
+                        </button>
+                    </div>
                 </div>
 
                 <div class="input-table-wrapper">
@@ -641,6 +578,7 @@
                 { id: 'smiles', label: 'SMILES' },
                 { id: 'delivero', label: 'Deliveroo' }
             ],
+            deliveryChannels: ['delivery', 'keeta', 'noon', 'careem', 'smiles', 'delivero'],
             targets: {
                 avgCheck: 25,
                 lowTrnThreshold: 30
@@ -649,10 +587,10 @@
 
         let state = {
             db: {},
-            currentMonth: "2026-01",
+            currentMonth: "2026-01", // Default
             currentScope: "month",
-            activeBranchIdx: 0,      // Used for Entry Form
-            activeFilterBranch: 'all', // Used for Dashboard Filter
+            activeBranchIdx: 0,
+            activeFilterBranch: 'all',
             sort: { col: 'sales', dir: 'desc' }
         };
 
@@ -691,21 +629,15 @@
             },
 
             filterBranch: (val) => {
-                // When Header Dropdown changes:
-                // 1. Update Dashboard Filter
                 state.activeFilterBranch = val;
-                
-                // 2. SYNC: Update Sidebar (Entry Form)
                 if(val !== 'all') {
                     state.activeBranchIdx = CONFIG.branches.indexOf(val);
                 }
-                
-                app.renderNav(); // Update Sidebar highlight
+                app.renderNav();
                 if(document.getElementById('view-entry').classList.contains('active')) {
-                    app.renderEntryForm(); // Update Input Grid
+                    app.renderEntryForm();
                 }
-                
-                app.updatePeriod(); // Update Charts
+                app.updatePeriod();
             },
 
             printReport: () => {
@@ -714,7 +646,6 @@
                 const [y, m] = state.currentMonth.split('-').map(Number);
                 document.getElementById('printDateRange').textContent = `${monthNames[m-1]} ${y}`;
                 document.getElementById('printGenDate').textContent = new Date().toLocaleDateString();
-
                 setTimeout(() => { window.print(); }, 500);
             },
 
@@ -729,6 +660,8 @@
                 
                 app.renderKPIs(total);
                 app.renderCharts(branchStats);
+                app.renderChannelChart(branchStats);
+                app.renderDeliveryTrendChart();
                 app.renderHeatmap(branchStats);
                 app.renderBranchTable(branchStats, total);
                 app.renderChannelTable(channelStats, branchStats);
@@ -744,12 +677,47 @@
                 document.getElementById('ctxMonthName').innerText = mName;
             },
 
+            // --- SMART DATA ENTRY: Copy Previous Day ---
+            copyPreviousDay: () => {
+                // Get the currently displayed rows
+                const rows = document.querySelectorAll('#entryTable tbody tr');
+                if(rows.length < 2) {
+                    alert("Not enough days to copy!");
+                    return;
+                }
+
+                // We will copy from Row (N) to Row (N+1) for all visible rows?
+                // Better UX: Copy from "Yesterday" to "Today" relative to current cursor?
+                // Simplest: Copy Day 1 -> Day 2, Day 2 -> Day 3 for the whole month.
+                
+                if(!confirm("Copy data from Previous Day to Current Day for ALL rows? (Overwrites current data)")) return;
+
+                const [y, m] = state.currentMonth.split('-').map(Number);
+                const days = new Date(y, m, 0).getDate();
+                const bName = CONFIG.branches[state.activeBranchIdx];
+
+                // Loop from Day 2 to End
+                for(let d=2; d<=days; d++) {
+                    const prevIso = `${y}-${String(m).padStart(2,'0')}-${String(d-1).padStart(2,'0')}`;
+                    const currIso = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    
+                    const prevData = state.db[bName][prevIso];
+                    if(prevData) {
+                        // Deep Copy
+                        state.db[bName][currIso] = JSON.parse(JSON.stringify(prevData));
+                    }
+                }
+                
+                app.saveData();
+                app.renderEntryForm(); // Refresh UI
+                alert("Data copied successfully!");
+            },
+
             processData: () => {
                 const { start, end } = app.getRange();
                 let total = { sales: 0, trn: 0 };
                 let branchStats = [];
 
-                // Use Filter Branch if set, else use all
                 let branchesToProcess = CONFIG.branches;
                 if(state.activeFilterBranch !== 'all') {
                     branchesToProcess = [state.activeFilterBranch];
@@ -809,9 +777,11 @@
                 return { start, end };
             },
 
+            // --- IMPROVED Data Entry Form ---
             renderEntryForm: () => {
                 const table = document.getElementById('entryTable');
                 const [y, m] = state.currentMonth.split('-').map(Number);
+                // Fix: Ensure logic for month days is robust
                 const days = new Date(y, m, 0).getDate();
                 const bName = CONFIG.branches[state.activeBranchIdx];
                 table.innerHTML = '';
@@ -828,15 +798,15 @@
                     const iso = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                     const dayData = state.db[bName][iso] || {};
                     
-                    let tr = `<tr><td class="day-cell">${d}</td>`;
+                    let tr = `<tr class="entry-row"><td class="day-cell">${d}</td>`; // Added class "entry-row" for hover
                     CONFIG.channels.forEach(ch => {
                         const val = dayData[ch.id] || { sales:'', trn:'' };
                         tr += `
                             <td class="channel-group">
                                 <input type="number" class="form-input" placeholder="Sales" value="${val.sales}" 
-                                    onchange="app.saveEntry('${iso}', '${ch.id}', 'sales', this.value)">
-                                <input type="number" class="form-input" placeholder="TRN" value="${val.trn}" 
-                                    onchange="app.saveEntry('${iso}', '${ch.id}', 'trn', this.value)">
+                                    onchange="app.saveEntry('${iso}', '${ch.id}', 'sales', this)">
+                                <input type="number" class="form-input input-trn" placeholder="TRN" value="${val.trn}" 
+                                    onchange="app.saveEntry('${iso}', '${ch.id}', 'trn', this)">
                             </td>
                         `;
                     });
@@ -847,12 +817,25 @@
                 table.innerHTML += tbody;
             },
 
-            saveEntry: (date, chId, key, val) => {
+            saveEntry: (date, chId, key, inputEl) => {
                 const bName = CONFIG.branches[state.activeBranchIdx];
                 if(!state.db[bName][date]) state.db[bName][date] = {};
                 if(!state.db[bName][date][chId]) state.db[bName][date][chId] = {};
-                state.db[bName][date][chId][key] = parseFloat(val) || 0;
-                app.saveData();
+                
+                const val = parseFloat(inputEl.value) || 0;
+                state.db[bName][date][chId][key] = val;
+
+                // Visual Feedback
+                inputEl.classList.remove('saved-anim');
+                void inputEl.offsetWidth; // trigger reflow
+                inputEl.classList.add('saved-anim');
+                
+                // Do not lose focus! Keep user in the cell.
+                // But trigger save data in background
+                if(window.saveTimeout) clearTimeout(window.saveTimeout);
+                window.saveTimeout = setTimeout(() => {
+                    app.saveData();
+                }, 500); // Save after 500ms of inactivity
             },
 
             resetMonth: () => {
@@ -874,39 +857,32 @@
                 document.getElementById('kpiTrn').textContent = total.trn.toLocaleString(undefined, {maximumFractionDigits:0});
                 const avg = total.trn > 0 ? (total.sales / total.trn) : 0;
                 document.getElementById('kpiAvg').textContent = avg.toFixed(2);
-                
-                // Update Scope Label
                 document.getElementById('kpiScopeName').textContent = state.activeFilterBranch === 'all' ? 'All Branches' : state.activeFilterBranch;
             },
 
             renderCharts: (data) => {
                 const svg = document.getElementById('branchChart'); 
-                if(!svg) return; // Safety check
+                if(!svg) return;
                 svg.innerHTML = '';
                 
-                // 1. Setup Dimensions (Fixed Canvas)
                 const h = 250, w = 600;
                 const padTop = 40, padBot = 20, padLeft = 80, padRight = 40;
                 
-                // 2. Calculate Max Value (Handle Zeros)
                 const allSales = data.map(d=>d.sales);
                 const maxVal = allSales.length > 0 ? Math.max(...allSales) : 0;
                 
-                // 3. Handle "No Data" State
                 if(maxVal === 0) {
                     svg.innerHTML = `<text x="${w/2}" y="${h/2}" text-anchor="middle" fill="#999" font-size="14">No Data Available</text>`;
                     return;
                 }
 
-                // 4. Calculate Bar Dimensions
                 const availH = h - padTop - padBot;
                 const availW = w - padLeft - padRight;
                 
                 const barCount = data.length;
-                const gap = 15; // Space between bars
+                const gap = 15; 
                 const barW = (availW - (gap * (barCount - 1))) / barCount;
 
-                // 5. Draw Grid Lines (Background)
                 for(let i=0; i<=4; i++) {
                     const y = padTop + (availH * (i/4));
                     const valLabel = (maxVal * (i/4)).toFixed(0);
@@ -914,21 +890,15 @@
                     svg.innerHTML += `<text x="${padLeft - 5}" y="${y+4}" text-anchor="end" class="axis-text">${valLabel}</text>`;
                 }
 
-                // 6. Draw Bars
                 data.forEach((d, i) => {
                     const valH = (d.sales / maxVal) * availH;
                     const x = padLeft + i * (barW + gap);
-                    const y = padTop + availH - valH; // Align to bottom axis
+                    const y = padTop + availH - valH;
                         
-                    // The Bar
                     svg.innerHTML += `<rect x="${x}" y="${y}" width="${barW}" height="${valH}" fill="var(--primary)" rx="4" class="bar">
                         <title>${d.name}: ${d.sales.toFixed(2)}</title>
                     </rect>`;
-                    
-                    // Branch Label (Bottom) - Shortened to fit
                     svg.innerHTML += `<text x="${x + barW/2}" y="${h - 8}" text-anchor="middle" class="axis-text" font-weight="bold">${d.name.split(' ')[0]}</text>`;
-                    
-                    // Value Label (Top of Bar)
                     svg.innerHTML += `<text x="${x + barW/2}" y="${y - 5}" text-anchor="middle" fill="#666" font-size="10">${d.sales.toFixed(0)}</text>`;
                 });
             },
@@ -967,6 +937,66 @@
                     </path>`;
                     start = end;
                 });
+            },
+
+            renderDeliveryTrendChart: () => {
+                const svg = document.getElementById('trendChart');
+                svg.innerHTML = '';
+
+                const [y, m] = state.currentMonth.split('-').map(Number);
+                const days = new Date(y, m, 0).getDate();
+                const trendData = [];
+
+                for(let d=1; d<=days; d++) {
+                    const iso = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    let dailyTotal = 0;
+                    
+                    CONFIG.branches.forEach(b => {
+                        const branchDay = state.db[b] ? state.db[b][iso] : {};
+                        CONFIG.deliveryChannels.forEach(chId => {
+                            if(branchDay[chId]) {
+                                dailyTotal += parseFloat(branchDay[chId].sales) || 0;
+                            }
+                        });
+                    });
+                    trendData.push({ day: d, value: dailyTotal });
+                }
+
+                const w = 800, h = 200;
+                const pad = 30;
+                const maxVal = Math.max(...trendData.map(d => d.value), 100);
+                
+                for(let i=0; i<=4; i++) {
+                    const yPos = h - pad - (i/4)*(h - pad*2);
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", pad); line.setAttribute("y1", yPos);
+                    line.setAttribute("x2", w - pad); line.setAttribute("y2", yPos);
+                    line.setAttribute("class", "grid-line");
+                    svg.appendChild(line);
+                }
+
+                let points = "";
+                const stepX = (w - pad*2) / (days - 1);
+
+                trendData.forEach((d, i) => {
+                    const x = pad + i * stepX;
+                    const y = h - pad - (d.value / maxVal) * (h - pad*2);
+                    points += `${x},${y} `;
+
+                    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    circle.setAttribute("cx", x); circle.setAttribute("cy", y);
+                    circle.setAttribute("r", 4);
+                    circle.setAttribute("class", "trend-dot");
+                    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+                    title.textContent = `Day ${d.day}: $${d.value.toFixed(2)}`;
+                    circle.appendChild(title);
+                    svg.appendChild(circle);
+                });
+
+                const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+                polyline.setAttribute("points", points);
+                polyline.setAttribute("class", "trend-line");
+                svg.insertBefore(polyline, svg.firstChild);
             },
             
             renderChartsWrapper: (data) => {
@@ -1053,7 +1083,7 @@
                     }
                 });
 
-                const aggs = ['keeta','noon','careem','smiles','delivero'];
+                const aggs = CONFIG.deliveryChannels;
                 aggs.forEach(id => {
                     const share = (cData[id].sales / total.sales) * 100;
                     if(share < 3 && total.sales > 0) {
@@ -1080,14 +1110,9 @@
                     el.className = `nav-item ${i===state.activeBranchIdx?'active':''}`;
                     el.innerHTML = `<span>${b}</span> <small style="opacity:0.5">#${i+1}</small>`;
                     el.onclick = () => {
-                        // When Sidebar Clicks:
-                        // 1. Update Sidebar Index
                         state.activeBranchIdx = i;
-                        
-                        // 2. SYNC: Update Header Filter
                         state.activeFilterBranch = b;
                         document.getElementById('branchSelector').value = b;
-                        
                         app.renderNav();
                         app.updateContextHeader();
                         if(document.getElementById('view-entry').classList.contains('active')) app.renderEntryForm();
@@ -1136,7 +1161,6 @@
         const originalUpdatePeriod = app.updatePeriod;
         app.updatePeriod = function() {
             originalUpdatePeriod.apply(app);
-            // Robust Chart Render Wrapper
             const { branchStats } = app.processData();
             app.renderChartsWrapper(branchStats);
         };
