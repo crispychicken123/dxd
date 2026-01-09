@@ -29,6 +29,7 @@
             /* Effects */
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --radius: 8px;
+            --header-height: 70px;
         }
 
         * { box-sizing: border-box; outline: none; }
@@ -53,6 +54,7 @@
             flex-shrink: 0;
             box-shadow: 4px 0 10px rgba(0,0,0,0.1);
             z-index: 20;
+            transition: transform 0.3s ease;
         }
 
         .brand {
@@ -90,24 +92,29 @@
         }
 
         /* --- Main Layout --- */
-        main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; width: 100%; }
 
         /* --- Header --- */
         header {
             background: var(--bg-card);
             padding: 0 30px;
-            height: 70px;
+            height: var(--header-height);
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
-            flex-wrap: wrap; /* Allow wrapping on small screens */
+            flex-wrap: wrap;
         }
+
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .mobile-toggle { display: none; font-size: 1.2rem; color: var(--secondary); cursor: pointer; }
+
         .header-left h1 { margin: 0; font-size: 1.4rem; color: var(--secondary); font-weight: 300; }
         .header-left strong { font-weight: 700; }
         
         .header-controls { display: flex; gap: 15px; align-items: center; }
+        
         .control-group {
             background: #f8f9fa;
             padding: 5px 10px;
@@ -119,6 +126,7 @@
             border: none; background: transparent;
             font-weight: 600; font-size: 0.9rem;
             color: var(--secondary); cursor: pointer;
+            min-width: 60px;
         }
 
         .btn {
@@ -140,6 +148,7 @@
             padding: 0 30px;
             border-bottom: 1px solid var(--border);
             display: flex; gap: 30px; flex-shrink: 0;
+            overflow-x: auto; white-space: nowrap;
         }
         .tab-btn {
             padding: 15px 0; background: none; border: none;
@@ -156,7 +165,7 @@
         .view-container { flex: 1; overflow: hidden; position: relative; background: var(--bg-body); }
         .view {
             display: none; height: 100%; overflow-y: auto;
-            padding: 30px; animation: fadeIn 0.4s ease;
+            padding: 30px; animation: fadeIn 0.3s ease;
         }
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -173,6 +182,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap; gap: 10px;
         }
         .context-info h3 { margin: 0; font-size: 1.1rem; color: var(--secondary); }
         .context-info p { margin: 5px 0 0; color: var(--text-muted); font-size: 0.9rem; }
@@ -198,11 +208,13 @@
         .kpi-value { font-size: 1.8rem; font-weight: 700; color: var(--secondary); margin-bottom: 5px; }
         .kpi-sub { font-size: 0.85rem; color: var(--text-muted); }
 
-        /* --- Tables --- */
+        /* --- Charts & Cards --- */
         .chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .chart-card { background: var(--bg-card); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
+        .chart-card { background: var(--bg-card); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); min-height: 350px; }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        
+        .chart-title { font-size: 1.1rem; color: var(--secondary); margin: 0; }
+
+        /* --- Tables --- */
         .table-container {
             background: var(--bg-card); border-radius: var(--radius);
             box-shadow: var(--shadow); overflow: hidden;
@@ -232,16 +244,21 @@
             background: var(--bg-card); border-radius: var(--radius);
             box-shadow: var(--shadow); overflow: auto; border: 1px solid var(--border);
         }
-        .entry-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        .entry-table th { background: var(--secondary); color: white; padding: 12px; font-size: 0.85rem; }
+        .entry-table { width: 100%; border-collapse: collapse; min-width: 1200px; }
+        .entry-table th { background: var(--secondary); color: white; padding: 12px; font-size: 0.85rem; white-space: nowrap; }
         .entry-table td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+        
+        /* Sticky Day Column */
         .day-cell {
             background: #f8f9fa; color: var(--secondary); font-weight: bold;
-            text-align: center; width: 50px; vertical-align: middle !important;
-            writing-mode: vertical-rl; text-orientation: mixed;
+            text-align: center; width: 60px; vertical-align: middle !important;
+            position: sticky; left: 0; z-index: 10;
             border-right: 2px solid var(--primary);
         }
-        .channel-group { border-right: 1px solid var(--border); min-width: 140px; }
+        /* Sticky Header for Input */
+        .entry-table thead th { position: sticky; top: 0; z-index: 20; }
+
+        .channel-group { min-width: 140px; border-right: 1px solid var(--border); }
         .channel-group-header {
             background: #fff3e0; color: var(--primary-dark);
             padding: 5px; text-align: center; font-size: 0.75rem; font-weight: bold;
@@ -255,8 +272,9 @@
         .form-input:focus { border-color: var(--primary); background: #fff8e1; outline: none; box-shadow: 0 0 0 2px rgba(230, 81, 0, 0.1); }
 
         /* --- Heatmap & Insights --- */
-        .heatmap-grid { display: grid; grid-template-columns: 120px repeat(8, 1fr); gap: 4px; margin-top: 15px; }
-        .hm-cell { padding: 10px; text-align: center; border-radius: 4px; font-size: 0.8rem; color: #333; position: relative; }
+        .heatmap-container { overflow-x: auto; }
+        .heatmap-grid { display: inline-grid; grid-template-columns: 120px repeat(8, 1fr); gap: 4px; min-width: 100%; }
+        .hm-cell { padding: 10px; text-align: center; border-radius: 4px; font-size: 0.8rem; color: #333; min-width: 60px; }
         .hm-header { font-weight: 700; background: #eee; }
         .bg-low { background: #fee2e2; color: #991b1b; }
         .bg-med { background: #fef3c7; color: #92400e; }
@@ -285,146 +303,109 @@
 
         /* --- SVG --- */
         svg { width: 100%; height: 100%; overflow: visible; }
-        .bar { fill: var(--primary); rx: 4; transition: height 0.5s; cursor: pointer; }
+        .bar { fill: var(--primary); rx: 4; transition: height 0.5s, y 0.5s; cursor: pointer; }
         .bar:hover { fill: var(--primary-dark); opacity: 0.9; }
         .grid-line { stroke: #f1f2f6; stroke-width: 1; }
         .axis-text { font-size: 10px; fill: #95a5a6; }
+        .pie-slice { transition: transform 0.2s; cursor: pointer; }
+        .pie-slice:hover { transform: scale(1.05); }
+
+        /* --- Mobile Responsive --- */
+        @media (max-width: 900px) {
+            .chart-row { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            aside {
+                position: absolute;
+                height: 100%;
+                transform: translateX(-100%);
+                box-shadow: 2px 0 15px rgba(0,0,0,0.2);
+            }
+            aside.open { transform: translateX(0); }
+            .mobile-toggle { display: block; }
+            .header-controls span { display: none; } /* Hide labels on mobile controls */
+            .header-controls .btn { padding: 8px; }
+            .header-controls .btn i { margin: 0; }
+            .view { padding: 15px; }
+        }
 
         /* =========================================
            PRINT STYLES (REPORT SUMMARY)
            ========================================= */
         @media print {
-            /* 1. FIX: Allow full height for printer */
+            @page { size: A4 landscape; margin: 0.5cm; }
+            
             body {
                 height: auto !important;
                 overflow: visible !important;
                 background: white !important;
                 color: black !important;
-                font-size: 12pt;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+                font-size: 11pt;
             }
 
-            /* 1. HIDE: Sidebar, Header, Inputs, Heatmap */
-            aside, header, .tabs, .context-bar, .toast, .no-print, .chart-row:nth-child(2) .chart-card:last-child {
+            aside, header, .tabs, .context-bar, .toast, .no-print, 
+            .chart-row:nth-child(2) .chart-card:last-child, /* Hide heatmap */
+            .table-toolbar {
                 display: none !important;
             }
 
-            /* 2. FIX: Reset Layout Containers */
-            main {
-                display: block !important;
-                height: auto !important;
-                overflow: visible !important;
-            }
-
-            .view-container {
-                overflow: visible !important;
-                position: static !important;
-                background: white !important;
-            }
+            main { display: block !important; height: auto !important; overflow: visible !important; }
+            .view-container { overflow: visible !important; position: static !important; background: white !important; }
+            .view { display: none !important; height: auto !important; overflow: visible !important; padding: 0 !important; animation: none !important; }
             
-            .view {
-                display: none !important; /* Hide all tabs */
-                height: auto !important;
-                overflow: visible !important;
-                padding: 0 !important;
-                animation: none !important;
-            }
+            #view-dashboard { display: block !important; }
 
-            /* 3. SHOW ONLY DASHBOARD */
-            #view-dashboard {
-                display: block !important;
+            /* Header for Print */
+            .report-header {
+                display: flex !important;
+                justify-content: space-between;
+                align-items: flex-end;
+                border-bottom: 2px solid var(--primary);
+                padding-bottom: 10px;
+                margin-bottom: 20px;
             }
+            .report-header h1 { color: var(--primary); margin: 0; font-size: 24pt; }
+            .report-header h2 { margin: 0; font-size: 14pt; color: #333; }
+            .report-header p { color: #666; font-size: 10pt; margin: 5px 0 0 0; }
 
-            /* 4. ARRANGE SIZE SYSTEM */
+            /* KPIs */
             .kpi-grid {
                 display: grid !important;
-                grid-template-columns: repeat(4, 1fr) !important; /* 4 Fixed Columns */
-                gap: 10px !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 15px !important;
                 margin-bottom: 20px !important;
             }
             .kpi-card {
-                box-shadow: none;
-                border: 1px solid #ccc;
-                break-inside: avoid;
-            }
-
-            /* Charts Stack vertically */
-            .chart-row {
-                display: block !important;
-                margin-bottom: 20px;
-            }
-            .chart-card {
-                break-inside: avoid;
-                page-break-inside: avoid;
-                box-shadow: none;
-                border: 1px solid #ccc;
-                margin-bottom: 15px;
+                box-shadow: none; border: 1px solid #ccc; break-inside: avoid;
                 padding: 10px;
-                min-height: 300px; /* Ensure space */
             }
-            .chart-card h3 { font-size: 14pt; margin-top: 0; }
-            
-            /* Hide Heatmap to save space */
-            #heatmapContainer { display: none !important; }
+            .kpi-value { font-size: 1.4rem; }
 
-            /* Table Fixes */
-            .table-container {
-                height: auto !important;
-                border: 1px solid #ccc;
-                box-shadow: none;
-                break-inside: avoid;
-                page-break-inside: avoid;
-                margin-top: 20px;
-            }
-            .data-table-wrapper {
-                overflow: visible !important;
+            /* Charts */
+            .chart-row { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 20px; margin-bottom: 20px; break-inside: avoid; }
+            .chart-card { 
+                box-shadow: none; border: 1px solid #ccc; padding: 10px; 
+                min-height: 250px; page-break-inside: avoid; break-inside: avoid;
             }
 
-            /* FIX: Disable Sticky Positioning (Breaks print) */
-            th {
-                position: static !important;
-                background: #eee !important;
-                border-bottom: 1px solid black !important;
-                -webkit-print-color-adjust: exact;
-            }
-            td {
-                border-bottom: 1px solid #ccc !important;
-                color: black !important;
-            }
+            /* Table */
+            .table-container { height: auto !important; border: 1px solid #ccc; box-shadow: none; margin-top: 20px; page-break-inside: avoid; }
+            .data-table-wrapper { overflow: visible !important; }
+            th { position: static !important; background: #eee !important; color: black !important; border: 1px solid #999; }
+            td { border: 1px solid #ccc !important; color: black !important; font-size: 10pt; }
             tr { page-break-inside: avoid; }
 
-            /* SVG Chart Fixes for Print */
-            svg {
-                width: 100% !important;
-                height: auto !important;
-                display: block;
-            }
+            /* SVG */
+            svg { width: 100% !important; height: 250px !important; display: block; overflow: visible; }
 
-            /* Header & Footer */
-            .report-header {
-                text-align: center;
-                margin-bottom: 20px;
-                border-bottom: 2px solid var(--primary);
-                padding-bottom: 10px;
-                display: block !important;
-            }
-            .report-header h1 { color: var(--primary); margin: 0; font-size: 24pt; }
-            .report-header h2 { margin: 5px 0; font-size: 16pt; color: #333; }
-            .report-header p { color: #666; font-size: 12pt; margin-top: 10px; }
-
+            /* Footer */
             .print-footer {
-                margin-top: 30px;
-                text-align: center;
-                font-size: 9pt;
-                color: #666;
-                border-top: 1px solid #eee;
-                padding-top: 10px;
-            }
-
-            @page {
-                size: A4 landscape;
-                margin: 1.5cm;
+                display: block !important;
+                margin-top: 30px; text-align: center; font-size: 9pt; color: #666;
+                border-top: 1px solid #eee; padding-top: 10px;
             }
         }
     </style>
@@ -432,7 +413,7 @@
 <body>
 
     <!-- Sidebar -->
-    <aside>
+    <aside id="sidebar">
         <div class="brand">🍗 Crispy <span>BI</span></div>
         <div class="nav-menu" id="navList"></div>
     </aside>
@@ -441,28 +422,29 @@
     <main>
         <header>
             <div class="header-left">
+                <div class="mobile-toggle" onclick="app.toggleSidebar()"><i class="fas fa-bars"></i></div>
                 <h1><strong>Executive</strong> Dashboard</h1>
             </div>
             <div class="header-controls no-print">
                 
-                <!-- Branch Selector (NEW) -->
+                <!-- Branch Selector -->
                 <div class="control-group">
-                    <span style="font-size:0.75rem; color:#999; font-weight:600;">BRANCH:</span>
+                    <span style="font-size:0.7rem; color:#999; font-weight:600;">BRANCH:</span>
                     <select id="branchSelector" onchange="app.filterBranch(this.value)">
-                        <option value="all">All Branches (Company)</option>
+                        <option value="all">All Branches</option>
                         <!-- Populated by JS -->
                     </select>
                 </div>
 
                 <div class="control-group">
-                    <span style="font-size:0.75rem; color:#999; font-weight:600;">PERIOD:</span>
+                    <span style="font-size:0.7rem; color:#999; font-weight:600;">PERIOD:</span>
                     <select id="scopeSelector" onchange="app.updatePeriod()">
-                        <option value="month">This Month</option>
+                        <option value="month">Month</option>
                         <option value="q1">Q1</option>
                         <option value="q2">Q2</option>
                         <option value="q3">Q3</option>
                         <option value="q4">Q4</option>
-                        <option value="year">Full Year 2026</option>
+                        <option value="year">Full Year</option>
                     </select>
                     <select id="monthSelector" onchange="app.updatePeriod()">
                         <option value="2026-01">Jan</option>
@@ -480,10 +462,10 @@
                     </select>
                 </div>
                 <button class="btn btn-print" onclick="app.printReport()">
-                    <i class="fas fa-print"></i> Print
+                    <i class="fas fa-print"></i> <span>Print</span>
                 </button>
                 <button class="btn btn-primary" onclick="app.exportCSV()">
-                    <i class="fas fa-file-csv"></i> CSV
+                    <i class="fas fa-file-csv"></i> <span>CSV</span>
                 </button>
             </div>
         </header>
@@ -491,9 +473,9 @@
         <div class="tabs no-print">
             <button class="tab-btn active" onclick="app.switchTab('dashboard')"><i class="fas fa-chart-line"></i> Overview</button>
             <button class="tab-btn" onclick="app.switchTab('entry')"><i class="fas fa-edit"></i> Data Entry</button>
-            <button class="tab-btn" onclick="app.switchTab('branches')"><i class="fas fa-store"></i> Branch Perf</button>
-            <button class="tab-btn" onclick="app.switchTab('channels')"><i class="fas fa-truck"></i> Channel Perf</button>
-            <button class="tab-btn" onclick="app.switchTab('insights')"><i class="fas fa-brain"></i> Auto Insights</button>
+            <button class="tab-btn" onclick="app.switchTab('branches')"><i class="fas fa-store"></i> Branches</button>
+            <button class="tab-btn" onclick="app.switchTab('channels')"><i class="fas fa-truck"></i> Channels</button>
+            <button class="tab-btn" onclick="app.switchTab('insights')"><i class="fas fa-brain"></i> Insights</button>
         </div>
 
         <div class="view-container">
@@ -502,9 +484,14 @@
             <div id="view-dashboard" class="view active">
                 <!-- Print Header (Only Visible in Print) -->
                 <div class="report-header" style="display:none;">
-                    <h1>Crispy Chicken</h1>
-                    <h2>Executive Monthly Summary</h2>
-                    <p id="printDateRange">Date Range: Loading...</p>
+                    <div>
+                        <h1>Crispy Chicken</h1>
+                        <h2>Executive Monthly Summary</h2>
+                    </div>
+                    <div style="text-align:right;">
+                        <p id="printDateRange">Date Range: Loading...</p>
+                        <p id="printGenDate"></p>
+                    </div>
                 </div>
 
                 <!-- KPIs -->
@@ -535,7 +522,7 @@
                 <div class="chart-row">
                     <div class="chart-card">
                         <div class="chart-header"><h3 class="chart-title">Revenue by Branch</h3></div>
-                        <svg id="branchChart" viewBox="0 0 600 250"></svg>
+                        <svg id="branchChart" viewBox="0 0 600 250" preserveAspectRatio="none"></svg>
                     </div>
                     <div class="chart-card">
                         <div class="chart-header"><h3 class="chart-title">Channel Mix</h3></div>
@@ -546,7 +533,9 @@
                 <!-- Heatmap -->
                 <div class="chart-card no-print">
                     <div class="chart-header"><h3 class="chart-title">TRN Heatmap (Branch x Channel)</h3></div>
-                    <div id="heatmapContainer" class="heatmap-grid"></div>
+                    <div class="heatmap-container">
+                        <div id="heatmapContainer" class="heatmap-grid"></div>
+                    </div>
                 </div>
 
                 <!-- Detailed Table -->
@@ -563,7 +552,7 @@
                 </div>
 
                 <div class="print-footer" style="display:none;">
-                    Confidential Report - Crispy Chicken Enterprise BI - Generated on <span id="printGenDate"></span>
+                    Confidential Report - Crispy Chicken Enterprise BI
                 </div>
             </div>
 
@@ -625,7 +614,7 @@
         </div>
     </main>
 
-    <div id="toast" class="toast">Data Saved</div>
+    <div id="toast" class="toast"><i class="fas fa-check-circle"></i> Data Saved</div>
 
     <script>
         // --- Config & State ---
@@ -668,8 +657,12 @@
 
             loadData: () => {
                 const saved = localStorage.getItem('crispy_ultimate_db');
-                if(saved) state.db = JSON.parse(saved);
-                else CONFIG.branches.forEach(b => state.db[b] = {});
+                if(saved) {
+                    try { state.db = JSON.parse(saved); } 
+                    catch(e) { console.error("Data corruption", e); state.db = {}; }
+                } else {
+                    CONFIG.branches.forEach(b => state.db[b] = {});
+                }
             },
 
             saveData: () => {
@@ -678,7 +671,11 @@
                 app.updatePeriod();
             },
 
-            // --- SYNC LOGIC ---
+            // --- UI INTERACTION ---
+            toggleSidebar: () => {
+                document.getElementById('sidebar').classList.toggle('open');
+            },
+
             populateBranchSelect: () => {
                 const sel = document.getElementById('branchSelector');
                 sel.innerHTML = '<option value="all">All Branches (Company)</option>';
@@ -691,21 +688,18 @@
             },
 
             filterBranch: (val) => {
-                // When Header Dropdown changes:
-                // 1. Update Dashboard Filter
                 state.activeFilterBranch = val;
                 
-                // 2. SYNC: Update Sidebar (Entry Form)
                 if(val !== 'all') {
                     state.activeBranchIdx = CONFIG.branches.indexOf(val);
                 }
                 
-                app.renderNav(); // Update Sidebar highlight
+                app.renderNav(); 
                 if(document.getElementById('view-entry').classList.contains('active')) {
-                    app.renderEntryForm(); // Update Input Grid
+                    app.renderEntryForm(); 
                 }
                 
-                app.updatePeriod(); // Update Charts
+                app.updatePeriod();
             },
 
             printReport: () => {
@@ -723,7 +717,9 @@
                 state.currentMonth = document.getElementById('monthSelector').value;
                 
                 app.updateContextHeader();
-                app.renderEntryForm();
+                if(document.getElementById('view-entry').classList.contains('active')) {
+                    app.renderEntryForm();
+                }
                 
                 const { branchStats, channelStats, total } = app.processData();
                 
@@ -744,12 +740,12 @@
                 document.getElementById('ctxMonthName').innerText = mName;
             },
 
+            // --- DATA PROCESSING ---
             processData: () => {
                 const { start, end } = app.getRange();
                 let total = { sales: 0, trn: 0 };
                 let branchStats = [];
 
-                // Use Filter Branch if set, else use all
                 let branchesToProcess = CONFIG.branches;
                 if(state.activeFilterBranch !== 'all') {
                     branchesToProcess = [state.activeFilterBranch];
@@ -773,6 +769,7 @@
                     }
                     row.avg = row.trn > 0 ? row.sales / row.trn : 0;
                     
+                    // Best/Worst Channel Logic
                     let best = {id:'', val:-1}, worst = {id:'', val:99999};
                     Object.keys(row.channels).forEach(k => {
                         if(row.channels[k].sales > best.val) best = {id:k, val:row.channels[k].sales};
@@ -785,6 +782,7 @@
                     total.sales += row.sales; total.trn += row.trn;
                 });
 
+                // Aggregated Channel Stats
                 let channelStats = {};
                 CONFIG.channels.forEach(c => channelStats[c.id] = { sales:0, trn:0, branches:{} });
                 branchStats.forEach(b => {
@@ -809,6 +807,7 @@
                 return { start, end };
             },
 
+            // --- ENTRY FORM ---
             renderEntryForm: () => {
                 const table = document.getElementById('entryTable');
                 const [y, m] = state.currentMonth.split('-').map(Number);
@@ -816,21 +815,29 @@
                 const bName = CONFIG.branches[state.activeBranchIdx];
                 table.innerHTML = '';
 
+                // Header
                 let thead = '<thead><tr><th class="day-cell">Day</th>';
                 CONFIG.channels.forEach(ch => {
                     thead += `<th class="channel-group"><div class="channel-group-header">${ch.label}</div></th>`;
                 });
-                thead += '</tr></thead>';
+                thead += '<th class="day-cell" style="background:var(--primary); color:white; left:auto; right:0;">Total</th></tr></thead>';
                 table.innerHTML += thead;
 
+                // Body
                 let tbody = '<tbody>';
                 for(let d=1; d<=days; d++) {
                     const iso = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                     const dayData = state.db[bName][iso] || {};
                     
                     let tr = `<tr><td class="day-cell">${d}</td>`;
+                    
+                    let dayTotal = 0;
+
                     CONFIG.channels.forEach(ch => {
-                        const val = dayData[ch.id] || { sales:'', trn:'' };
+                        const val = dayData[chId = ch.id] || { sales:'', trn:'' };
+                        const salesVal = parseFloat(val.sales) || 0;
+                        dayTotal += salesVal;
+
                         tr += `
                             <td class="channel-group">
                                 <input type="number" class="form-input" placeholder="Sales" value="${val.sales}" 
@@ -840,6 +847,10 @@
                             </td>
                         `;
                     });
+
+                    // Total Cell
+                    tr += `<td class="day-cell" style="background:#fff; color:var(--text-main); font-weight:bold; border-left:1px solid #ccc;">${dayTotal.toFixed(0)}</td>`;
+                    
                     tr += '</tr>';
                     tbody += tr;
                 }
@@ -849,9 +860,10 @@
 
             saveEntry: (date, chId, key, val) => {
                 const bName = CONFIG.branches[state.activeBranchIdx];
+                if(!state.db[bName]) state.db[bName] = {};
                 if(!state.db[bName][date]) state.db[bName][date] = {};
                 if(!state.db[bName][date][chId]) state.db[bName][date][chId] = {};
-                state.db[bName][date][chId][key] = parseFloat(val) || 0;
+                state.db[bName][date][chId][key] = val === "" ? 0 : parseFloat(val);
                 app.saveData();
             },
 
@@ -869,120 +881,123 @@
                 }
             },
 
+            // --- RENDERING VIEWS ---
             renderKPIs: (total) => {
                 document.getElementById('kpiSales').textContent = total.sales.toLocaleString(undefined, {minimumFractionDigits:2});
                 document.getElementById('kpiTrn').textContent = total.trn.toLocaleString(undefined, {maximumFractionDigits:0});
                 const avg = total.trn > 0 ? (total.sales / total.trn) : 0;
                 document.getElementById('kpiAvg').textContent = avg.toFixed(2);
-                
-                // Update Scope Label
                 document.getElementById('kpiScopeName').textContent = state.activeFilterBranch === 'all' ? 'All Branches' : state.activeFilterBranch;
             },
 
             renderCharts: (data) => {
+                // 1. Bar Chart
                 const svg = document.getElementById('branchChart'); 
-                if(!svg) return; // Safety check
-                svg.innerHTML = '';
-                
-                // 1. Setup Dimensions (Fixed Canvas)
-                const h = 250, w = 600;
-                const padTop = 40, padBot = 20, padLeft = 80, padRight = 40;
-                
-                // 2. Calculate Max Value (Handle Zeros)
-                const allSales = data.map(d=>d.sales);
-                const maxVal = allSales.length > 0 ? Math.max(...allSales) : 0;
-                
-                // 3. Handle "No Data" State
-                if(maxVal === 0) {
-                    svg.innerHTML = `<text x="${w/2}" y="${h/2}" text-anchor="middle" fill="#999" font-size="14">No Data Available</text>`;
-                    return;
-                }
+                if(svg) {
+                    svg.innerHTML = '';
+                    const h = 250, w = 600;
+                    const padTop = 30, padBot = 30, padLeft = 60, padRight = 20;
+                    const availH = h - padTop - padBot;
+                    const availW = w - padLeft - padRight;
+                    const allSales = data.map(d=>d.sales);
+                    const maxVal = allSales.length > 0 ? Math.max(...allSales) : 100; // Prevent div/0
 
-                // 4. Calculate Bar Dimensions
-                const availH = h - padTop - padBot;
-                const availW = w - padLeft - padRight;
-                
-                const barCount = data.length;
-                const gap = 15; // Space between bars
-                const barW = (availW - (gap * (barCount - 1))) / barCount;
+                    if(maxVal === 0) {
+                        svg.innerHTML = `<text x="${w/2}" y="${h/2}" text-anchor="middle" fill="#999" font-size="14">No Data Available</text>`;
+                    } else {
+                        // Grid lines
+                        for(let i=0; i<=4; i++) {
+                            const y = padTop + (availH * (i/4));
+                            const valLabel = Math.round(maxVal * (i/4));
+                            svg.innerHTML += `<line x1="${padLeft}" y1="${y}" x2="${w-padRight}" y2="${y}" class="grid-line" />`;
+                            svg.innerHTML += `<text x="${padLeft - 5}" y="${y+4}" text-anchor="end" class="axis-text">${valLabel}</text>`;
+                        }
 
-                // 5. Draw Grid Lines (Background)
-                for(let i=0; i<=4; i++) {
-                    const y = padTop + (availH * (i/4));
-                    const valLabel = (maxVal * (i/4)).toFixed(0);
-                    svg.innerHTML += `<line x1="${padLeft}" y1="${y}" x2="${w-padRight}" y2="${y}" class="grid-line" />`;
-                    svg.innerHTML += `<text x="${padLeft - 5}" y="${y+4}" text-anchor="end" class="axis-text">${valLabel}</text>`;
-                }
-
-                // 6. Draw Bars
-                data.forEach((d, i) => {
-                    const valH = (d.sales / maxVal) * availH;
-                    const x = padLeft + i * (barW + gap);
-                    const y = padTop + availH - valH; // Align to bottom axis
+                        // Bars
+                        const gap = 10;
+                        const barW = Math.min(50, (availW / data.length) - gap);
                         
-                    // The Bar
-                    svg.innerHTML += `<rect x="${x}" y="${y}" width="${barW}" height="${valH}" fill="var(--primary)" rx="4" class="bar">
-                        <title>${d.name}: ${d.sales.toFixed(2)}</title>
-                    </rect>`;
-                    
-                    // Branch Label (Bottom) - Shortened to fit
-                    svg.innerHTML += `<text x="${x + barW/2}" y="${h - 8}" text-anchor="middle" class="axis-text" font-weight="bold">${d.name.split(' ')[0]}</text>`;
-                    
-                    // Value Label (Top of Bar)
-                    svg.innerHTML += `<text x="${x + barW/2}" y="${y - 5}" text-anchor="middle" fill="#666" font-size="10">${d.sales.toFixed(0)}</text>`;
-                });
-            },
-
-            renderChannelChart: (data) => {
-                const pSvg = document.getElementById('channelChart'); 
-                if(!pSvg) return;
-                pSvg.innerHTML = '';
-
-                let channelTotal = {};
-                CONFIG.channels.forEach(c => channelTotal[c.id] = 0);
-                data.forEach(b => { CONFIG.channels.forEach(c => { channelTotal[c.id] += b.channels[c.id].sales; }); });
-                
-                const total = Object.values(channelTotal).reduce((a,b)=>a+b, 0);
-                
-                if(total === 0) {
-                     pSvg.innerHTML = `<text x="150" y="150" text-anchor="middle" fill="#999">No Data</text>`;
-                     return;
+                        data.forEach((d, i) => {
+                            const valH = (d.sales / maxVal) * availH;
+                            // Ensure at least 1px height if > 0
+                            const drawH = (d.sales > 0 && valH < 1) ? 1 : valH;
+                            const x = padLeft + i * (barW + gap) + gap;
+                            const y = padTop + availH - drawH;
+                            
+                            svg.innerHTML += `<rect x="${x}" y="${y}" width="${barW}" height="${drawH}" class="bar">
+                                <title>${d.name}: $${d.sales.toFixed(2)}</title>
+                            </rect>`;
+                            
+                            // Labels (Skip some if too many)
+                            if(data.length < 15 || i % 2 === 0) {
+                                svg.innerHTML += `<text x="${x + barW/2}" y="${h - 10}" text-anchor="middle" class="axis-text" font-weight="bold">${d.name.split(' ')[0]}</text>`;
+                            }
+                            
+                            // Value Top
+                            if(drawH > 15) {
+                                svg.innerHTML += `<text x="${x + barW/2}" y="${y + 10}" text-anchor="middle" fill="white" font-size="9">${d.sales.toFixed(0)}</text>`;
+                            }
+                        });
+                    }
                 }
 
-                const r = 100, cx = 150, cy = 150;
-                let start = 0;
-                const colors = ['#e65100', '#ff9800', '#2ecc71', '#3498db', '#9b59b6', '#e74c3c', '#f1c40f', '#34495e'];
+                // 2. Pie Chart
+                const pSvg = document.getElementById('channelChart'); 
+                if(pSvg) {
+                    pSvg.innerHTML = '';
+                    
+                    let channelTotal = {};
+                    CONFIG.channels.forEach(c => channelTotal[c.id] = 0);
+                    data.forEach(b => { 
+                        CONFIG.channels.forEach(c => { 
+                            channelTotal[c.id] += (b.channels[c.id].sales || 0); 
+                        }); 
+                    });
+                    
+                    const total = Object.values(channelTotal).reduce((a,b)=>a+b, 0);
+                    
+                    if(total === 0) {
+                        pSvg.innerHTML = `<text x="150" y="150" text-anchor="middle" fill="#999">No Data</text>`;
+                    } else {
+                        const r = 100, cx = 150, cy = 150;
+                        let start = 0;
+                        const colors = ['#e65100', '#ff9800', '#2ecc71', '#3498db', '#9b59b6', '#e74c3c', '#f1c40f', '#34495e'];
 
-                CONFIG.channels.forEach((ch, i) => {
-                    const val = channelTotal[ch.id];
-                    if(val <= 0) return;
-                    const slice = (val/total)*2*Math.PI;
-                    const end = start + slice;
-                    const x1 = cx + r*Math.cos(start), y1 = cy + r*Math.sin(start);
-                    const x2 = cx + r*Math.cos(end), y2 = cy + r*Math.sin(end);
-                    const large = slice > Math.PI ? 1 : 0;
-                    const pathData = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
-                    pSvg.innerHTML += `<path d="${pathData}" fill="${colors[i]}" stroke="white" stroke-width="2">
-                        <title>${ch.label}: ${val.toFixed(2)}</title>
-                    </path>`;
-                    start = end;
-                });
-            },
-            
-            renderChartsWrapper: (data) => {
-                this.renderCharts(data);
-                this.renderChannelChart(data);
+                        CONFIG.channels.forEach((ch, i) => {
+                            const val = channelTotal[ch.id];
+                            if(val <= 0) return;
+                            const slice = (val/total)*2*Math.PI;
+                            const end = start + slice;
+                            const x1 = cx + r*Math.cos(start), y1 = cy + r*Math.sin(start);
+                            const x2 = cx + r*Math.cos(end), y2 = cy + r*Math.sin(end);
+                            const large = slice > Math.PI ? 1 : 0;
+                            // Path logic
+                            const pathData = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
+                            
+                            pSvg.innerHTML += `<path d="${pathData}" fill="${colors[i]}" stroke="white" stroke-width="2" class="pie-slice">
+                                <title>${ch.label}: $${val.toFixed(2)} (${((val/total)*100).toFixed(1)}%)</title>
+                            </path>`;
+                            start = end;
+                        });
+                        
+                        // Inner white circle for Donut look (optional, makes it cleaner)
+                         pSvg.innerHTML += `<circle cx="150" cy="150" r="50" fill="white" />
+                            <text x="150" y="155" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">${data.length} Br</text>`;
+                    }
+                }
             },
 
             renderHeatmap: (data) => {
-                const div = document.getElementById('heatmapContainer'); div.innerHTML = '';
-                div.innerHTML += `<div class="hm-cell hm-header">Branch \\ Channel</div>`;
+                const div = document.getElementById('heatmapContainer'); 
+                if(!div) return;
+                div.innerHTML = '';
+                div.innerHTML += `<div class="hm-cell hm-header">Branch</div>`;
                 CONFIG.channels.forEach(ch => {
                     div.innerHTML += `<div class="hm-cell hm-header">${ch.label.substring(0,4)}</div>`;
                 });
 
                 data.forEach(b => {
-                    div.innerHTML += `<div class="hm-cell hm-header">${b.name.split(' ')[0]}</div>`;
+                    div.innerHTML += `<div class="hm-cell hm-header" style="font-size:0.7rem;">${b.name.split(' ')[0]}</div>`;
                     CONFIG.channels.forEach(ch => {
                         const val = b.channels[ch.id].trn;
                         let color = 'bg-low';
@@ -994,35 +1009,43 @@
             },
 
             renderBranchTable: (data, total) => {
-                const tables = [document.querySelector('#branchTable tbody'), document.querySelector('#branchTable2 tbody')];
-                const theads = [document.querySelector('#branchTable thead'), document.querySelector('#branchTable2 thead')];
+                const tableIds = ['branchTable', 'branchTable2'];
                 
-                const thHTML = `<tr><th>Branch</th><th>Sales</th><th>TRN</th><th>Avg</th><th>Best</th><th>Weak</th></tr>`;
-                tables.forEach((tbody, idx) => {
+                tableIds.forEach(tid => {
+                    const tbody = document.querySelector(`#${tid} tbody`);
+                    const thead = document.querySelector(`#${tid} thead`);
                     if(!tbody) return;
-                    theads[idx].innerHTML = thHTML;
+
+                    const thHTML = `<tr><th>Branch</th><th>Sales</th><th>TRN</th><th>Avg</th><th>Best Ch</th><th>Weak Ch</th></tr>`;
+                    thead.innerHTML = thHTML;
                     tbody.innerHTML = '';
                     data.forEach(b => {
                         const row = `<tr>
                             <td><strong>${b.name}</strong></td>
-                            <td class="num">${b.sales.toFixed(2)}</td>
+                            <td class="num">$${b.sales.toFixed(2)}</td>
                             <td class="num">${b.trn}</td>
-                            <td class="num">${b.avg.toFixed(2)}</td>
-                            <td><span class="badge">${b.bestLabel}</span></td>
-                            <td><span class="badge">${b.worstLabel}</span></td>
+                            <td class="num">$${b.avg.toFixed(2)}</td>
+                            <td><span style="color:var(--success)">${b.bestLabel}</span></td>
+                            <td><span style="color:var(--danger)">${b.worstLabel}</span></td>
                         </tr>`;
                         tbody.innerHTML += row;
                     });
                 });
-                
-                const top = data.reduce((p,c)=>p.sales>c.sales?p:c);
-                document.getElementById('kpiTop').innerText = top.sales > 0 ? top.name : "-";
+
+                if(data.length > 0) {
+                    const top = data.reduce((p,c)=>p.sales>c.sales?p:c);
+                    document.getElementById('kpiTop').innerText = top.sales > 0 ? top.name : "-";
+                }
             },
 
             renderChannelTable: (stats, branchData) => {
                 const tbody = document.querySelector('#channelTable tbody');
-                document.querySelector('#channelTable thead').innerHTML = `<tr><th>Channel</th><th>Sales</th><th>TRN</th><th>Avg</th><th>Best Branch</th></tr>`;
+                const thead = document.querySelector('#channelTable thead');
+                if(!tbody) return;
+
+                thead.innerHTML = `<tr><th>Channel</th><th>Sales</th><th>TRN</th><th>Avg</th><th>Best Branch</th></tr>`;
                 tbody.innerHTML = '';
+                
                 Object.keys(stats).forEach(k => {
                     const c = stats[k];
                     const avg = c.trn > 0 ? c.sales / c.trn : 0;
@@ -1033,9 +1056,9 @@
 
                     const row = `<tr>
                         <td><strong>${CONFIG.channels.find(x=>x.id===k).label}</strong></td>
-                        <td class="num">${c.sales.toFixed(2)}</td>
+                        <td class="num">$${c.sales.toFixed(2)}</td>
                         <td class="num">${c.trn}</td>
-                        <td class="num">${avg.toFixed(2)}</td>
+                        <td class="num">$${avg.toFixed(2)}</td>
                         <td>${bestB.n}</td>
                     </tr>`;
                     tbody.innerHTML += row;
@@ -1044,47 +1067,60 @@
 
             generateInsights: (bData, cData, total) => {
                 const list = document.getElementById('insightsList');
+                if(!list) return;
                 list.innerHTML = '';
+                
                 const globalAvg = total.trn > 0 ? total.sales/total.trn : 0;
 
+                // Insight 1: Low Check Size
                 bData.forEach(b => {
                     if(b.trn > 200 && b.avg < CONFIG.targets.avgCheck - 3) {
-                        app.addInsight('alert', `📉 ${b.name}: Upselling Opportunity`, `High transaction volume (${b.trn}) but low average check (${b.avg.toFixed(1)}). Train staff on upselling combos & drinks.`);
+                        app.addInsight('alert', `📉 ${b.name}: Upselling Opportunity`, `High traffic (${b.trn} TRN) but low check ($${b.avg.toFixed(1)}). Recommend promoting combos.`);
                     }
                 });
 
+                // Insight 2: Low Delivery App Share
                 const aggs = ['keeta','noon','careem','smiles','delivero'];
                 aggs.forEach(id => {
-                    const share = (cData[id].sales / total.sales) * 100;
-                    if(share < 3 && total.sales > 0) {
-                        app.addInsight('warn', `📦 ${CONFIG.channels.find(x=>x.id===id).label} is Low`, `Market share is only ${share.toFixed(1)}%. Consider reviewing menu photos or commission rates.`);
+                    const share = total.sales > 0 ? (cData[id].sales / total.sales) * 100 : 0;
+                    if(share < 3 && total.sales > 1000) {
+                        app.addInsight('warn', `📦 ${CONFIG.channels.find(x=>x.id===id).label} Underperforming`, `Market share is only ${share.toFixed(1)}%. Review menu visibility on the app.`);
                     }
                 });
 
-                if(globalAvg > CONFIG.targets.avgCheck) {
-                    app.addInsight('info', `🏆 Performance Excellent`, `Company Avg Check (${globalAvg.toFixed(1)}) exceeds target (${CONFIG.targets.avgCheck}). Keep up the momentum!`);
+                // Insight 3: Global Performance
+                if(globalAvg > CONFIG.targets.avgCheck + 2) {
+                    app.addInsight('info', `🏆 Performance Excellent`, `Company Avg ($${globalAvg.toFixed(1)}) beats target ($${CONFIG.targets.avgCheck}). Great job!`);
+                }
+
+                if(list.innerHTML === '') {
+                    list.innerHTML = `<div style="color:#999; padding:20px; text-align:center;">Not enough data to generate insights. Enter more data to see automated analysis.</div>`;
                 }
             },
 
             addInsight: (type, title, text) => {
                 const div = document.createElement('div');
                 div.className = `insight-card ${type}`;
-                div.innerHTML = `<div class="insight-icon"><i class="fas ${type==='alert'?'fa-exclamation-circle':type==='warn'?'fa-exclamation-triangle':'fa-lightbulb'}"></i></div><div><h4 style="margin:0 0 5px 0">${title}</h4><p style="margin:0;color:#666;font-size:0.9rem">${text}</p></div>`;
+                const iconMap = { 'alert': 'fa-exclamation-circle', 'warn': 'fa-exclamation-triangle', 'info': 'fa-lightbulb' };
+                div.innerHTML = `
+                    <div class="insight-icon"><i class="fas ${iconMap[type] || 'fa-info-circle'}"></i></div>
+                    <div>
+                        <h4 style="margin:0 0 5px 0">${title}</h4>
+                        <p style="margin:0;color:#555;font-size:0.9rem; line-height:1.4">${text}</p>
+                    </div>`;
                 document.getElementById('insightsList').appendChild(div);
             },
 
             renderNav: () => {
-                const div = document.getElementById('navList'); div.innerHTML = '';
+                const div = document.getElementById('navList'); 
+                if(!div) return;
+                div.innerHTML = '';
                 CONFIG.branches.forEach((b, i) => {
                     const el = document.createElement('div');
                     el.className = `nav-item ${i===state.activeBranchIdx?'active':''}`;
-                    el.innerHTML = `<span>${b}</span> <small style="opacity:0.5">#${i+1}</small>`;
+                    el.innerHTML = `<span>${b}</span> <small style="opacity:0.5; font-size:0.7em;">#${i+1}</small>`;
                     el.onclick = () => {
-                        // When Sidebar Clicks:
-                        // 1. Update Sidebar Index
                         state.activeBranchIdx = i;
-                        
-                        // 2. SYNC: Update Header Filter
                         state.activeFilterBranch = b;
                         document.getElementById('branchSelector').value = b;
                         
@@ -1092,6 +1128,9 @@
                         app.updateContextHeader();
                         if(document.getElementById('view-entry').classList.contains('active')) app.renderEntryForm();
                         app.updatePeriod();
+                        
+                        // On mobile, close sidebar after selection
+                        if(window.innerWidth <= 768) app.toggleSidebar();
                     };
                     div.appendChild(el);
                 });
@@ -1101,7 +1140,10 @@
                 document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
                 document.getElementById(`view-${tab}`).classList.add('active');
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                event.target.closest('.tab-btn').classList.add('active');
+                if(event && event.target) event.target.closest('.tab-btn').classList.add('active');
+                
+                // If switching to entry, ensure form is fresh
+                if(tab === 'entry') app.renderEntryForm();
             },
 
             showToast: () => {
@@ -1111,7 +1153,8 @@
             },
 
             exportCSV: () => {
-                let csv = "Date,Branch,Channel,Sales,TRN\n";
+                // UTF-8 BOM for Excel compatibility
+                let csv = "\uFEFFDate,Branch,Channel,Sales,TRN\n";
                 const { start, end } = app.getRange();
                 CONFIG.branches.forEach(b => {
                     for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) {
@@ -1119,26 +1162,22 @@
                         const day = state.db[b][k];
                         if(day) {
                             Object.keys(day).forEach(ch => {
-                                csv += `${k},${b},${CONFIG.channels.find(c=>c.id===ch).label},${day[ch].sales},${day[ch].trn}\n`;
+                                const s = day[ch].sales || 0;
+                                const t = day[ch].trn || 0;
+                                csv += `${k},${b},${CONFIG.channels.find(c=>c.id===ch).label},${s},${t}\n`;
                             });
                         }
                     }
                 });
-                const blob = new Blob([csv], { type: 'text/csv' });
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = window.URL.createObjectURL(blob);
-                a.download = `Crispy_Report_${state.currentMonth}.csv`;
+                a.href = url;
+                a.download = `Crispy_BI_Report_${state.currentMonth}.csv`;
+                document.body.appendChild(a);
                 a.click();
+                document.body.removeChild(a);
             }
-        };
-
-        // --- Main Update Router Override ---
-        const originalUpdatePeriod = app.updatePeriod;
-        app.updatePeriod = function() {
-            originalUpdatePeriod.apply(app);
-            // Robust Chart Render Wrapper
-            const { branchStats } = app.processData();
-            app.renderChartsWrapper(branchStats);
         };
 
         window.onload = app.init;
